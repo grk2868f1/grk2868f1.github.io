@@ -1,6 +1,6 @@
 base_url = "https://grk2868f1.github.io"
 compile_sass = true
-title = "GRK 2868 Archive"
+title = "GRK2868-F1"
 description = "Research notes and archive of the GRK 2868 F1 subproject"
 generate_feeds = true
 # 默认语言为英文：英文页面不带前缀；中文、德文页面在 /zh/、/de/ 下（见 [languages.*]）。
@@ -39,7 +39,7 @@ index_format = "fuse_json"
 truncate_content_length = 2000
 
 [languages.zh]
-title = "GRK 2868 Archive"
+title = "GRK2868-F1"
 description = "GRK 2868 F1 子项目的研究笔记与资料存档"
 generate_feeds = true
 build_search_index = true
@@ -49,7 +49,7 @@ taxonomies = [
 ]
 
 [languages.de]
-title = "GRK 2868 Archive"
+title = "GRK2868-F1"
 description = "Forschungsnotizen und Archiv des Teilprojekts GRK 2868 F1"
 generate_feeds = true
 build_search_index = true
@@ -159,7 +159,7 @@ references = "Literatur"
 undefined_citation = "Undefinierte Quelle"
 
 [extra]
-brand = "GRK2868"
+brand = "GRK2868-F1"
 author = "GRK 2868 F1 Project"
 github = "https://github.com/grk2868f1"
 # key 是 [translations] 里的键；path 相对当前语言的首页（模板会补上 /、/en/ 或 /de/）
