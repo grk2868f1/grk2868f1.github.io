@@ -1,0 +1,115 @@
+.note-container {
+  overflow: hidden;
+  margin: 1em auto;
+  padding: 0;
+  font-size: 1.1em;
+  min-width: 100%;
+  /* 与纸张正文一致的衬线字体（原 JetBrains Mono 是唯一的外部字体依赖，已移除） */
+  font-family: var(--font-text-serif);
+}
+
+.note-details {
+  width: 100%;
+  border-left: 0.4em solid var(--accent);
+  border-top: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+  padding: 0;
+}
+
+.light .note-header {
+  background-color: #fcfcf9;     // 提示块标题背景与页面大背景统一
+  color: #000;                   // 提示块标题文字纯黑，覆盖任何继承到的浅色
+}
+
+/* 提示块整体在浅色模式下加右下阴影，区分于纸张底色 */
+.light .note-container {
+  box-shadow:
+    1px 1px 2px rgba(0, 0, 0, 0.04),
+    3px 5px 12px rgba(0, 0, 0, 0.06);
+  border-radius: 4px;
+  overflow: hidden;              // 让 .note-details 的左侧蓝色 border 圆角化
+}
+
+.note-header {
+  background-color: color-mix(in srgb, var(--note-bg-dark) 90%, white 20%);
+  cursor: pointer;
+  position: relative;
+  font-size: 1.2em;
+  transition: background-color 0.3s ease;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+  list-style: none;
+  display: flex;
+  align-items: center;
+
+  p {
+    margin: 10px;
+    font-weight: bold;
+  }
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+
+  &::after {
+    content: '▼';
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent);
+    transition: transform 0.3s ease;
+  }
+
+  details[open]>&::after {
+    transform: translateY(-50%) rotate(180deg);
+  }
+}
+
+.note-center {
+  text-align: center;
+  padding: 0;
+  width: 100%;
+}
+
+.note-content {
+  padding: 10px 25px !important;
+  background-color: inherit;
+  font-size: 1em;
+  background-color: color-mix(in srgb, var(--note-bg-dark) 90%, white 10%);
+  color: inherit;
+  line-height: 1.6em;
+
+  a {
+    color: var(--accent);
+    font-weight: normal;
+
+    &:hover {
+      color: #fff;
+    }
+  }
+
+  .dark strong {
+    color: #fff;
+  }
+}
+
+.light .note-content {
+  background-color: #fcfcf9;     // 提示块内容背景与页面大背景统一
+  color: #000;                   // 强制正文为纯黑，避免任何上层 muted/灰色继承
+}
+
+.light .note-content p,
+.light .note-content li,
+.light .note-content strong {
+  color: #000;                   // 段落 / 列表 / 加粗都使用纯黑
+}
+
+.dark .note-content,
+.dark .note-content p,
+.dark .note-content li,
+.dark .note-content strong {
+  color: #ffffff;                // 深色模式同样保证亮度
+}

@@ -1,0 +1,105 @@
+{% extends "index.html" %}
+{% import "post_macros.html" as post_macros %}
+
+{% block title %}{% if page.title %}{{ page.title }} | {{ config.title }}{% else %}{{ super() }}{% endif %}{% endblock title %}
+
+{% block content %}
+{# ---- 作者解析：page.extra.author > page.authors > config.extra.author ---- #}
+{% set show_title = page.extra.show_title | default(value=true) %}
+{% set show_author = page.extra.show_author | default(value=false) %}
+{% set show_date = page.extra.show_date | default(value=true) %}
+{% set show_journal = page.extra.show_journal | default(value=true) %}
+{% set show_abstract = page.extra.show_abstract | default(value=true) %}
+{% set show_keywords = page.extra.show_keywords | default(value=true) %}
+{% if page.extra.author %}
+    {% set author = page.extra.author %}
+{% elif page.authors and page.authors | length > 0 %}
+    {% set author = page.authors | join(sep=", ") %}
+{% elif config.extra.author %}
+    {% set author = config.extra.author %}
+{% else %}
+    {% set author = "" %}
+{% endif %}
+
+<article itemscope itemtype="http://schema.org/BlogPosting" {{ post_macros::bibliography_attrs(page=page) }}>
+    {# ---- LaTeX 式标题区：标题 / 作者 / 日期 / 期刊（分类） ---- #}
+    {% if show_title or (show_author and author) or (show_date and page.date) or (show_journal and page.taxonomies.categories) %}
+    <header class="paper-title">
+        {% if show_title %}
+            <h1 itemprop="headline">{{ page.title }}</h1>
+        {% endif %}
+
+        {% if show_author and author %}
+            <div class="paper-authors" itemprop="author">{{ author }}</div>
+        {% endif %}
+
+        {% if show_date and page.date %}
+            {% set date_fmt = trans(key="date_format", lang=lang) %}
+            {% set date_loc = trans(key="date_locale", lang=lang) %}
+            <div class="paper-date">{{ page.date | date(format=date_fmt, locale=date_loc) }}</div>
+        {% endif %}
+
+        {% if show_journal and page.taxonomies.categories %}
+            {% set category = page.taxonomies.categories[0] %}
+            <div class="paper-journal">
+                {{ trans(key="published_in", lang=lang) }}
+                <a href="{{ get_taxonomy_url(kind="categories", name=category, lang=lang) | safe }}"><em>{{ category }}</em></a>
+            </div>
+        {% endif %}
+    </header>
+    {% endif %}
+
+    {# ---- 摘要（<!-- more --> 上方内容） ---- #}
+    {% if show_abstract and page.summary and page.summary != page.content %}
+        <section class="paper-abstract">
+            <h2 class="paper-abstract-title">{{ trans(key="abstract", lang=lang) }}</h2>
+            {{ page.summary | safe }}
+        </section>
+    {% endif %}
+
+    {# ---- 关键词（标签） ---- #}
+    {% if show_keywords and page.taxonomies.tags %}
+        <p class="paper-keywords">
+            <span class="paper-keywords-label">{{ trans(key="keywords_label", lang=lang) }}</span>
+            {% for tag in page.taxonomies.tags %}<a href="{{ get_taxonomy_url(kind="tags", name=tag, lang=lang) | safe }}">{{ tag }}</a>{% if not loop.last %}, {% endif %}{% endfor %}
+        </p>
+    {% endif %}
+
+    {# ---- 目录（可选） ---- #}
+    {% if page.extra.toc | default(value=false) and page.toc %}
+        <details class="toc-container" open>
+            <summary class="toc-title">{{ trans(key="toc", lang=lang) }}</summary>
+            <ul class="toc-list">
+                {% for h in page.toc %}
+                    {{ post_macros::toc_node(item=h, prefix="" ~ loop.index) }}
+                {% endfor %}
+            </ul>
+        </details>
+    {% endif %}
+
+    {# ---- 正文 ---- #}
+    <article itemprop="articleBody">
+        {% if show_abstract and page.summary and page.summary != page.content %}
+            {{ page.content | replace(from=page.summary, to="") | safe }}
+        {% else %}
+            {{ page.content | safe }}
+        {% endif %}
+    </article>
+
+    <!-- Comment section -->
+    {% block comments %}
+      {% if config.extra.comments | default(value="false") %}
+        {% if page.extra.comments | default(value="true")%}
+          {% include "_giscus_script.html" %}
+        {% endif %}
+      {% endif %}
+    {% endblock comments %}
+
+    <!-- Page footer -->
+    {% block page_footer %}
+        {% block extra_footer %}
+        {% endblock extra_footer %}
+    {% endblock page_footer %}
+</article>
+
+{% endblock content %}

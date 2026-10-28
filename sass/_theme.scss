@@ -1,0 +1,279 @@
+/*
+ * 这个文件定义了站点主题的自定义样式表，独立于第三方插件和库。
+ */
+:root {
+  /* 仅作为断点参考 */
+  --screen-size-small: 30em;
+
+  /* 禁用连字 */
+  font-variant-ligatures: none;
+  font-feature-settings: "liga" 0, "calt" 0;
+}
+
+/* 段落文本两端对齐和连字符换行 */
+p {
+  text-align: justify;  /* 两端对齐 */
+  word-break: break-word;  /* 确保长单词可以断行 */
+  -webkit-hyphens: auto;  /* Safari 支持 */
+  -moz-hyphens: auto;  /* Firefox 支持 */
+  -ms-hyphens: auto;  /* IE 支持 */
+  hyphens: auto;  /* 自动使用连字符断行 */
+}
+
+/* 页面淡入动画效果 */
+@keyframes intro {
+  0% {
+    opacity: 0;  /* 开始时完全透明 */
+  }
+
+  100% {
+    opacity: 1;  /* 结束时完全不透明 */
+  }
+}
+
+/* 暗色模式下的淡化文本颜色（正文亮度在 _vendor.scss 统一为 #fff） */
+.dark .muted {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* 亮色模式下的淡化文本颜色 */
+.light .muted {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+/* 响应式iframe容器样式 */
+.responsive-iframe {
+  position: relative;
+  padding-bottom: 56.25%;  /* 16:9 比例 */
+  padding-top: 25px;
+  height: 0;
+}
+
+/* 响应式iframe内部iframe元素样式 */
+.responsive-iframe iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* 所有iframe的默认样式 */
+iframe {
+  border: 0;  /* 移除边框 */
+}
+
+/* 主要内容和页脚的淡入动画 */
+main,
+footer {
+  animation: intro 0.3s both;  /* 0.3秒完成淡入动画 */
+  animation-delay: 0.15s;  /* 延迟0.15秒开始动画 */
+}
+
+/* （旧横向导航栏的布局规则已删除：侧边栏/顶栏布局统一由 parts/_paper.scss 定义） */
+
+/* 引用来源显示为块级元素 */
+blockquote cite {
+  display: block;
+}
+
+/* 在引用来源前添加长破折号 */
+blockquote cite::before {
+  content: "\2014";  /* 添加长破折号 */
+}
+
+/* hack.css 覆盖和增强 */
+/* 移除列表项中子列表的外边距 */
+.hack li ul {
+  margin: 0;
+}
+
+/* 主内容区域的内边距 */
+.main {
+  padding: 20px 10px;
+}
+
+/* 亮色模式下活动导航链接的样式 */
+.light nav a.active {
+  background-color: #1976d2;  /* 深蓝色背景 */
+  color: #fff;  /* 白色文本 */
+}
+
+/* 暗色模式下活动导航链接的样式 */
+.dark nav a.active {
+  background-color: #1565c0;  /* 更深蓝色背景 */
+  color: #fff;  /* 白色文本 */
+}
+
+/* 暗色模式下的URL链接样式 */
+.dark a[itemprop="url"] {
+  color: #64b5f6;  /* 浅蓝色 */
+}
+
+/* 亮色模式下的URL链接样式 */
+.light a[itemprop="url"] {
+  color: #1565c0;  /* 深蓝色 */
+  font-weight: bold;  /* 粗体 */
+}
+
+/* URL链接悬停效果 */
+a[itemprop="url"]:hover {
+  color: #fff;  /* 悬停时变为白色 */
+}
+
+/* 不再为外部链接追加箭头图标 */
+
+/* 移除RSS图标后的外部链接箭头 */
+.feed-icon::after {
+  content: none !important;
+}
+
+/* 所有图标的基本样式设置 */
+#sun-icon,  /* 太阳图标（亮色模式） */
+#moon-icon,  /* 月亮图标（暗色模式） */
+.social-icon {  /* 社交媒体图标 */
+  padding: 0.1em;  /* 内边距 */
+  height: 1.5em;  /* 高度 */
+  width: auto;  /* 宽度自适应 */
+  display: block;  /* 块级显示 */
+  margin-bottom: 0.25em;  /* 底部外边距 */
+}
+
+/* 暗色模式切换按钮的特定样式，确保对齐 */
+#dark-mode-toggle {
+  display: flex;  /* 弹性布局 */
+  align-items: center;  /* 垂直居中 */
+}
+
+/* 首帧就只显示一个主题图标：init-theme.js 在 <head> 里同步给 <html> 加 .dark/.light。
+   若等 defer 的 toggle-theme.js 再隐藏，加载瞬间两个图标并排，后面的社交图标会左右跳动 */
+.dark #moon-icon,
+.light #sun-icon {
+  display: none;
+}
+
+/* 暗色模式下社交图标样式 */
+/* 用 `.dark` 而非 `body.dark`：init-theme.js 在 head 阶段只能给 <html> 加类，
+   body 上的类要等 DOMContentLoaded 之后才会同步过来。 */
+.dark .social-icon {
+  filter: invert(1);  /* 颜色反转，使图标在暗色背景上可见 */
+}
+
+/* ORCID图标特殊样式处理 */
+/* 浅色模式下ORCID图标保持原有绿色 */
+.light #orcid-icon {
+  filter: none;  /* 不应用任何滤镜，保持原有绿色 */
+}
+
+/* 暗色模式下ORCID图标变为灰色调 */
+.dark #orcid-icon {
+  filter: grayscale(1) brightness(1.2);  /* 去饱和度并提高亮度 */
+}
+
+/* Email 图标为蓝色圆形徽章：亮色保持蓝色，暗色转灰（与 ORCID 一致） */
+.light #email-icon {
+  filter: none;
+}
+
+.dark #email-icon {
+  filter: grayscale(1) brightness(1.2);
+}
+
+/* 移除图片容器中外部链接的箭头图标 */
+figure a[href*="://"]::after,
+figure a[rel*="external"] {
+  content: "";  /* 清空内容 */
+}
+
+/* 根字号由 _vendor.scss 的 clamp(16px, 1.2vw + 1px, 18px) 平滑缩放，
+   不再用固定 13px + 768px 跳变覆盖 */
+
+/* 代码块字体大小 */
+.hack pre {
+  font-size: 17px;  /* 代码块使用更大字体 */
+}
+
+/* 图标垂直对齐调整 */
+.icon {
+  margin-bottom: -3px;  /* 微调图标位置，使其与文本对齐 */
+}
+
+/* 创意作品文章的样式 */
+article[itemtype="http://schema.org/CreativeWork"] {
+  margin-bottom: 1.25rem;  /* 文章底部外边距（列表中各篇之间的主要间距）*/
+
+  /* 文章标题样式 */
+  header {
+    h2 {
+      margin-bottom: 1.2rem !important;  /* 标题底部外边距 */
+    }
+  }
+
+  /* "阅读更多"导航样式 */
+  nav.readmore {
+    margin-top: 0.25rem;  /* 顶部外边距 */
+  }
+}
+
+/* 文章描述和摘要的外边距 */
+article [itemprop="description"],
+article [itemprop="summary"] {
+  margin-bottom: 20px;  /* 底部外边距 */
+  margin-top: 10px;  /* 顶部外边距 */
+  font-size: 0.95rem;  /* 与正文摘要 .paper-abstract 一致 */
+}
+
+/* 文章摘要段落的边距清零 */
+article [itemprop="summary"] p {
+  margin: 0;  /* 移除默认外边距 */
+}
+
+/* （旧导航栏的 .user-actions-container 布局规则已删除，现由 parts/_paper.scss 定义） */
+
+/* 脚注样式 */
+/* 脚注引用样式 */
+.footnote-reference {
+  margin-left: 0.15em;
+}
+
+/* Footnotes use bare superscript numbers; bibliography citations keep [n]. */
+.footnote-reference,
+.footnote-definition > .footnote-definition-label {
+  font-size: 0.75em;
+  line-height: 0;
+  vertical-align: super;
+}
+
+/* 脚注定义样式 */
+.footnote-definition {
+  display: block;  /* 块级显示 */
+  max-width: 100%;  /* 最大宽度 */
+  overflow: hidden;  /* 溢出隐藏 */
+  overflow-x: auto;  /* 横向溢出时显示滚动条 */
+  margin: 20px 0;  /* 垂直外边距 */
+  padding-block-end: 5px;  /* 底部内边距 */
+
+  /* 脚注上标样式 */
+  > .footnote-definition-label {
+    display: inline-block;  /* 行内块显示 */
+    margin-right: 0.5em;  /* 右侧外边距 */
+    color: var(--accent);  /* 蓝色 */
+    font-weight: normal;
+  }
+
+  /* 第一段落显示为行内元素 */
+  p:first-of-type {
+    display: inline;
+  }
+
+  /* 为后续段落添加顶部外边距 */
+  p:not(:first-of-type) {
+    margin-top: 0.5em;
+  }
+}
+
+/* 返回脚注引用的链接样式 */
+.footnote-return {
+  margin-left: 0.5em;  /* 左侧外边距 */
+  font-size: 1.2em;  /* 字体大小 */
+}

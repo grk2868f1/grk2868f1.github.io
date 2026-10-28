@@ -1,0 +1,36 @@
+{% extends "index.html" %}
+{% import "post_macros.html" as post_macros %}
+
+{% block title %}{{ page.title }} | {{ config.title }}{% endblock title %}
+
+{% block scripts %}
+<meta name="robots" content="noindex,nofollow">
+{{ super() }}
+{% endblock scripts %}
+
+{% block content %}
+<main>
+<h1>{{ page.title }}</h1>
+
+{% if page.content %}
+{{ page.content | safe }}
+{% endif %}
+
+{% set posts_section = get_section(path=config.extra.i18n.posts_index[lang]) %}
+{% set unlisted_pages = [] %}
+{% for listed_page in posts_section.pages %}
+  {% if listed_page.permalink != page.permalink and listed_page.extra.unlisted %}
+    {% set_global unlisted_pages = unlisted_pages | concat(with=listed_page) %}
+  {% endif %}
+{% endfor %}
+
+<p class="muted">{{ unlisted_pages | length }} {{ trans(key="n_posts", lang=lang) }}</p>
+
+{# 本页已 noindex，一次性列出全部，无需分页 #}
+<section class="all-posts-list">
+{% for listed_page in unlisted_pages %}
+  {{ post_macros::page_in_list_unfiltered(page=listed_page) }}
+{% endfor %}
+</section>
+</main>
+{% endblock content %}

@@ -1,0 +1,10 @@
+<figure
+  style="width: 100%; max-width: {% if width %}{{ width }}{% else %}100{% endif %}%; {% if align %}{% if align == "left" %}margin: 0; text-align: left;{% elif align == "right" %}margin: 0 0 0 auto; text-align: right;{% else %}margin: 0 auto; text-align: center;{% endif %}{% else %}margin: 0 auto; text-align: center;{% endif %}">
+  <img src="{{ src | safe }}" {% if alt %} alt="{{ alt | safe }}" {% endif %}
+    style="max-width: 100%; height: auto;{% if height %} max-height: {{ height }}px; object-fit: contain;{% endif %} display: inline-block; vertical-align: bottom;">
+  {% if caption %}
+  <figcaption style="margin-top: 0.25em;">
+    <p style="font-style: italic;">{{ caption | safe }}</p>
+  </figcaption>
+  {% endif %}
+</figure>

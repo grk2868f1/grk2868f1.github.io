@@ -1,0 +1,62 @@
+/*
+ * 参考文献样式（配合 static/js/citations.js）：
+ *  - 行内文献引用保持方括号 [1]，脚注另用纯上标序号
+ *  - 文末 References 列表：[1] 标签 + 悬挂缩进，同 thebibliography 环境
+ *  - References 标题相当于 \section*，不参与正文标题自动编号
+ */
+
+/* ---------- 行内引用 ---------- */
+.paper .citation a {
+  border-bottom: none;
+  font-weight: normal;
+}
+
+/* 未定义的引用键：同 LaTeX 显示 [?]，用醒目颜色提示 */
+.paper .citation-missing {
+  color: #d32f2f;
+  font-weight: bold;
+  cursor: help;
+}
+
+/* ---------- References 标题（不编号） ---------- */
+article[itemprop="articleBody"] h2.paper-references-title {
+  counter-increment: none;
+}
+
+article[itemprop="articleBody"] h2.paper-references-title::before {
+  content: none;
+}
+
+/* ---------- 文献列表 ---------- */
+.paper .references-list {
+  list-style: none;
+  counter-reset: bibitem; /* 独立计数器，不依赖 hack.css 的 list1 */
+  padding-left: 2.6em;
+  font-size: 0.95rem;
+}
+
+.paper .references-list > li {
+  counter-increment: bibitem;
+  position: relative;
+  margin-bottom: 0.5rem;
+  text-align: justify;
+}
+
+/* 覆盖 hack.css 的 "1. " 序号，改为 LaTeX 式 "[1]"，落在悬挂缩进区 */
+.paper .references-list > li::before {
+  content: "[" counter(bibitem) "]";
+  position: absolute;
+  left: -2.6em;
+  width: 2.2em;
+}
+
+/* 从行内 [n] 跳转过来时高亮目标条目，便于定位 */
+.paper .references-list > li:target {
+  background-color: rgba(33, 150, 243, 0.12);
+}
+
+/* 文献条目内的链接（DOI / URL）沿用正文细下划线，不加粗 */
+.paper .references-list a {
+  font-weight: normal;
+  overflow-wrap: break-word;
+}

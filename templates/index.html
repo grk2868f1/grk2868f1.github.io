@@ -1,0 +1,391 @@
+{% import "post_macros.html" as post_macros %}
+
+<!doctype html>
+<html
+  lang="{{ config.extra.i18n.html_lang[lang] }}"
+  data-refs-title="{{ trans(key='references', lang=lang) }}"
+  data-undefined-cite="{{ trans(key='undefined_citation', lang=lang) }}"
+>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+    <!-- Enable responsiveness on mobile devices -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Tell browsers we control theming ourselves to disable Chrome's
+         automatic dark-mode darkening on the brief unstyled paint. -->
+    <meta name="color-scheme" content="light dark" />
+
+    {% if page and page.description %}
+    <meta name="description" content="{{ page.description }}" />
+    <meta property="og:description" content="{{ page.description }}" />
+    <meta property="twitter:description" content="{{ page.description }}" />
+    {% elif page and page.summary %}
+    {% set content_desc = page.summary | striptags %}
+    <meta name="description" content="{{ content_desc }}" />
+    <meta property="og:description" content="{{ content_desc }}" />
+    <meta property="twitter:description" content="{{ content_desc }}" />
+    {% elif config.description %}
+    <meta name="description" content="{{ config.description }}" />
+    <meta property="og:description" content="{{ config.description }}" />
+    <meta property="twitter:description" content="{{ config.description }}" />
+    {% endif %}
+
+    <!-- Title -->
+    {% if page and page.title %} {% set title = page.title %} {% else %} {% set
+    title = config.title %} {% endif %}
+
+    <title>{% block title %}{{ title }}{% endblock title %}</title>
+
+    <!-- Canonical URL（404 页没有 current_url，用 is defined 守卫） -->
+    {% if current_url is defined %}
+      {% set page_url = current_url %}
+    {% elif page %}
+      {% set page_url = page.permalink %}
+    {% else %}
+      {% set page_url = config.base_url %}
+    {% endif %}
+    {% block seo %}
+    {% if current_url is defined %}
+    <link rel="canonical" href="{{ current_url | safe }}" />
+    {% endif %}
+    {% endblock seo %}
+
+    {# 有译本时告诉搜索引擎各语言版本，x-default 指向中文版 #}
+    {% set_global i18n_alternates = [] %}
+    {% if page %}
+      {% set_global i18n_alternates = page.translations %}
+    {% elif section %}
+      {% set_global i18n_alternates = section.translations %}
+    {% endif %}
+    {% if i18n_alternates | length > 1 %}
+    {% for t in i18n_alternates %}
+    <link rel="alternate" hreflang="{{ config.extra.i18n.html_lang[t.lang] }}" href="{{ t.permalink | safe }}" />
+    {% if t.lang == config.default_language %}
+    <link rel="alternate" hreflang="x-default" href="{{ t.permalink | safe }}" />
+    {% endif %}
+    {% endfor %}
+    {% endif %}
+
+    <!-- Unlisted 文章不进搜索引擎 -->
+    {% if page and page.extra.unlisted %}
+    <meta name="robots" content="noindex, nofollow" />
+    {% endif %}
+
+    <!-- Additional Facebook Meta Tags -->
+    <meta property="og:url" content="{{ page_url | safe }}" />
+    <meta
+      property="og:type"
+      content="{% if page %}article{% else %}website{% endif %}"
+    />
+    <meta property="og:locale" content="{{ config.extra.i18n.og_locale[lang] }}" />
+    <meta property="og:title" content="{{ title }}" />
+    <meta
+      property="og:image"
+      content="{{ config.base_url }}/icons/favicon/web-app-manifest-512x512.png"
+    />
+
+    <!-- Additional Twitter Meta Tags -->
+    <meta name="twitter:card" content="summary" />
+    <meta property="twitter:url" content="{{ page_url | safe }}" />
+    <meta name="twitter:title" content="{{ title }}" />
+    <meta
+      name="twitter:image"
+      content="{{ config.base_url }}/icons/favicon/web-app-manifest-512x512.png"
+    />
+
+    <!-- Favicons -->
+    {% if config.extra.favicon | default (value="true") %}
+    <link
+      rel="icon"
+      type="image/png"
+      href="{{ config.base_url }}/icons/favicon/favicon-96x96.png"
+      sizes="96x96"
+    />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="{{ config.base_url }}/icons/favicon/favicon.svg"
+    />
+    <link
+      rel="shortcut icon"
+      href="{{ config.base_url }}/icons/favicon/favicon.ico"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="{{ config.base_url }}/icons/favicon/apple-touch-icon.png"
+    />
+    <meta name="apple-mobile-web-app-title" content="{{ title }}" />
+    <link
+      rel="manifest"
+      href="{{ config.base_url }}/icons/favicon/site.webmanifest"
+    />
+    {% endif %}
+
+    <!-- RSS Feed -->
+    {% if config.generate_feeds %}
+    <link
+      rel="alternate"
+      type="application/atom+xml"
+      title="RSS"
+      href="{{ get_url(path='atom.xml', lang=lang) | safe }}"
+    />
+    {% endif %}
+
+    <!-- Load Styles -->
+    {# 本站 CSS/JS 一律 cachebust=true：地址带内容哈希，部署后浏览器不会拿缓存里的旧文件配新 HTML #}
+    <link
+      rel="preload"
+      as="style"
+      href="{{ get_url(path='site.css', trailing_slash=false, cachebust=true) | safe }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ get_url(path='site.css', trailing_slash=false, cachebust=true) | safe }}"
+    />
+
+    <!-- Pass Theme Preference as Data Attribute -->
+    <script src="{{ get_url(path='js/init-theme.js', trailing_slash=false, cachebust=true) | safe }}"></script>
+
+    <!-- Reference return to click position script -->
+    <script defer src="{{ get_url(path='js/reference-return.js', trailing_slash=false, cachebust=true) | safe }}"></script>
+
+    <!-- Mobile navigation toggle -->
+    <script defer src="{{ get_url(path='js/nav.js', trailing_slash=false, cachebust=true) | safe }}"></script>
+
+    <!-- 语言下拉菜单：点击外部或按 Esc 时收起 -->
+    <script defer src="{{ get_url(path='js/lang-switch.js', trailing_slash=false, cachebust=true) | safe }}"></script>
+
+    <!-- additional scripts -->
+    {% block scripts %}
+      {% include "partials/latex.html" %}
+      <script defer src="{{ get_url(path='js/citations.js', trailing_slash=false, cachebust=true) | safe }}"></script>
+      {% if config.extra.codeblock %}
+        <script defer src="{{ get_url(path='js/codeblock.js', trailing_slash=false, cachebust=true) | safe }}"></script>
+      {% endif %}
+      {% if config.extra.theme %}
+        <script defer src="{{ get_url(path='js/toggle-theme.js', trailing_slash=false, cachebust=true) | safe }}"></script>
+      {% endif %}
+      {% include "partials/search.html" %}
+    {% endblock scripts %}
+  </head>
+
+  <body class="hack">
+    {% block sidebar %}
+    {% set lang_root = config.base_url ~ config.extra.i18n.root[lang] %}
+    {% if config.extra.radion_menu %}
+    <header class="nav-header">
+      <div class="sidebar-brand">
+        <a href="{{ lang_root | safe }}">{{ config.extra.brand | default(value=config.title) }}</a>
+      </div>
+
+      {% if config.extra.enable_search %}
+      <aside class="user-actions-container">
+        <div class="search-box">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            class="search-icon"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+            />
+          </svg>
+          {# 每种语言一份索引，search.js 从 data-index 读取 URL #}
+          <input
+            type="text"
+            id="search"
+            placeholder="{{ trans(key='search_placeholder', lang=lang) }}"
+            data-index="{{ get_url(path='search_index.' ~ lang ~ '.json', trailing_slash=false) | safe }}"
+            data-no-results="{{ trans(key='search_no_results', lang=lang) }}"
+            data-unavailable="{{ trans(key='search_unavailable', lang=lang) }}"
+          />
+          <section class="search-results" aria-live="polite">
+            <article class="search-results__items" role="list"></article>
+          </section>
+        </div>
+      </aside>
+      {% endif %}
+
+      <nav
+        itemscope
+        itemtype="http://schema.org/SiteNavigationElement"
+        class="navbar"
+      >
+        <p class="nav-label">{{ trans(key="menu", lang=lang) }}</p>
+        <button
+          type="button"
+          class="nav-toggle"
+          aria-label="{{ trans(key='toggle_nav', lang=lang) }}"
+          aria-expanded="false"
+          aria-controls="nav-links"
+        >
+          <span class="nav-toggle-bar"></span>
+          <span class="nav-toggle-bar"></span>
+          <span class="nav-toggle-bar"></span>
+        </button>
+        <section class="nav-links" id="nav-links">
+          {% for item in config.extra.radion_menu %}
+          {% set item_url = lang_root ~ item.path %}
+          <a
+            itemprop="url"
+            class="{% if current_url is defined and item_url == current_url %}active{% endif %}"
+            href="{{ item_url | safe }}"
+          >
+            <span itemprop="name">{{ trans(key=item.key, lang=lang) }}</span>
+          </a>
+          {% endfor %}
+        </section>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-social">
+          {# 每个图标都写明 SVG 的真实宽高：浏览器据此先预留空间，否则图片加载前宽度为 0，刷新时右侧图标会被依次推动 #}
+          {% if config.extra.theme | default(value="toggle") == "toggle" %}
+          <a id="dark-mode-toggle" href="#">
+            <img
+              src="{{ get_url(path='icons/sun.svg') }}"
+              width="24"
+              height="24"
+              id="sun-icon"
+              style="filter: invert(1)"
+              alt="{{ trans(key='light_mode', lang=lang) }}"
+            />
+            <img
+              src="{{ get_url(path='icons/moon.svg') }}"
+              width="24"
+              height="24"
+              id="moon-icon"
+              alt="{{ trans(key='dark_mode', lang=lang) }}"
+            />
+          </a>
+          {% endif %} {% if config.generate_feeds %}
+          <a
+            href="{{ get_url(path='atom.xml', lang=lang) | safe }}"
+            class="feed-icon"
+            rel="noopener noreferrer"
+          >
+            <img
+              src="{{ get_url(path='icons/rss.svg') }}"
+              width="448"
+              height="512"
+              id="rss-icon"
+              alt="{{ trans(key='rss_feed', lang=lang) }}"
+              class="social-icon"
+            />
+          </a>
+          {% endif %} {% if config.extra.github %}
+          <a
+            href="{{ config.extra.github }}"
+            class="feed-icon"
+            rel="noopener noreferrer"
+          >
+            <img
+              src="{{ get_url(path='icons/github.svg') }}"
+              width="98"
+              height="96"
+              id="github-icon"
+              alt="GitHub"
+              class="social-icon"
+            />
+          </a>
+          {% endif %} {% if config.extra.orcid %}
+          <a
+            href="{{ config.extra.orcid }}"
+            class="feed-icon"
+            rel="noopener noreferrer"
+          >
+            <img
+              src="{{ get_url(path='icons/orcid.svg') }}"
+              width="98"
+              height="96"
+              id="orcid-icon"
+              alt="ORCID"
+              class="social-icon"
+            />
+          </a>
+          {% endif %} {% if config.extra.email %}
+          <a
+            href="mailto:{{ config.extra.email }}"
+            class="feed-icon"
+            rel="noopener noreferrer"
+          >
+            <img
+              src="{{ get_url(path='icons/email.svg') }}"
+              width="96"
+              height="96"
+              id="email-icon"
+              alt="Email"
+              class="social-icon"
+            />
+          </a>
+          {% endif %}
+          {# 语言下拉菜单放在图标行末尾 #}
+          {% block lang_switch %}{% include "partials/lang_switch.html" %}{% endblock lang_switch %}
+        </div>
+      </div>
+    </header>
+    {% endif %}
+    {% endblock sidebar %}
+
+    <div class="page-area">
+      <div class="paper">
+        {% block content %}
+        <main>
+          {% if config.title %}
+          <header class="paper-title"><h1>{{ config.title }}</h1></header>
+          {% endif %}
+
+          {# Introduction Section #}
+          <section class="introduction">
+            <h2>{{ trans(key="introduction", lang=lang) }}</h2>
+            {% if section.content %}
+            {{ section.content | safe }}
+            {% endif %}
+          </section>
+
+          {# Featured Posts Section #}
+          <section class="featured-posts">
+            <h2>{{ trans(key="featured_posts", lang=lang) }}</h2>
+
+            {# 从当前页面的 extra 配置读取 #}
+            {% set featured_slugs = section.extra.featured_posts | default(value=[]) %}
+
+            {% if featured_slugs %}
+              {% for slug in featured_slugs %}
+                {% set page = get_page(path=slug) %}
+                {{ post_macros::page_in_list(page=page) }}
+              {% endfor %}
+            {% else %}
+              {# 如果没有配置featured_posts，则显示最新的3篇 #}
+              {% set posts_section = get_section(path=config.extra.i18n.posts_index[lang]) %}
+              {% set all_posts = [] %}
+
+              {% for subsection_path in posts_section.subsections %}
+                {% set subsection = get_section(path=subsection_path) %}
+                {% set_global all_posts = all_posts | concat(with=subsection.pages) %}
+              {% endfor %}
+
+              {% set sorted_posts = all_posts | sort(attribute="date") | reverse | slice(end=3) %}
+
+              {% for page in sorted_posts %}
+                {{ post_macros::page_in_list(page=page) }}
+              {% endfor %}
+            {% endif %}
+          </section>
+        </main>
+        {% endblock content %}
+
+        <hr>
+        <footer class="site-footer">
+          <p>&copy; 2026&ndash;{{ now() | date(format="%Y") }} {{ config.extra.author }}.</p>
+        </footer>
+      </div>
+    </div>
+  </body>
+</html>

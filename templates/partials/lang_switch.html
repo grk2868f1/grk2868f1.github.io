@@ -1,0 +1,37 @@
+{#- 语言切换下拉菜单：按钮显示当前语言简称（中 / en / de），菜单按 config.extra.i18n.order
+    列出全称（中文 / English / Deutsch）。当前语言高亮、不可点；有对应版本的是链接；
+    没有的灰显且不可点（设计文档 D4）。文章页和 section 页看 translations；
+    taxonomy 页链接到目标语言的同类总览页。用原生 <details>，不依赖 JS 也能用。 -#}
+{%- set_global lang_targets = [] -%}
+{%- if page -%}
+  {%- set_global lang_targets = page.translations -%}
+{%- elif section -%}
+  {%- set_global lang_targets = section.translations -%}
+{%- endif -%}
+<details class="lang-switch">
+  <summary aria-label="{{ trans(key='language', lang=lang) }}">
+    <span class="lang-switch-current" lang="{{ config.extra.i18n.html_lang[lang] }}">{{ config.extra.i18n.label[lang] }}</span>
+    <span class="lang-switch-caret" aria-hidden="true">▾</span>
+  </summary>
+  <div class="lang-switch-menu">
+  {%- for code in config.extra.i18n.order %}
+    {%- set_global lang_target_url = "" -%}
+    {%- if taxonomy is defined -%}
+      {%- set_global lang_target_url = config.base_url ~ config.extra.i18n.root[code] ~ taxonomy.name ~ "/" -%}
+    {%- else -%}
+      {%- for t in lang_targets -%}
+        {%- if t.lang == code %}{% set_global lang_target_url = t.permalink %}{% endif -%}
+      {%- endfor -%}
+    {%- endif -%}
+    {%- set code_lang = config.extra.i18n.html_lang[code] -%}
+    {%- set name = config.extra.i18n.name[code] -%}
+    {%- if code == lang %}
+    <span class="lang-current" aria-current="true" lang="{{ code_lang }}">{{ name }}</span>
+    {%- elif lang_target_url %}
+    <a href="{{ lang_target_url | safe }}" hreflang="{{ code_lang }}" lang="{{ code_lang }}">{{ name }}</a>
+    {%- else %}
+    <span class="lang-unavailable" aria-disabled="true" lang="{{ code_lang }}">{{ name }}</span>
+    {%- endif %}
+  {%- endfor %}
+  </div>
+</details>

@@ -1,0 +1,15 @@
+/* NOTE: MathJax doesn't support line wrapping yet as of v3 and 2025-02-14.
+ This isn't necessarily the best formatting option IMO as it forces the user
+ to scroll to see the full content but it is better than before without
+ horizontal scrolling.
+ */
+/* 带 \tag 的整宽公式 (width="full") 会被 MathJax 在容器上加内联
+   `min-width: <公式自然宽度>`，当公式比正文列更宽时该 min-width 会把容器
+   自身撑破右边界，使 overflow-x 失效。强制取消它，让容器回到 100% 宽并滚动。 */
+mjx-container[display="true"] {
+  padding-block: 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  min-width: 0 !important;
+  max-width: 100%;
+}

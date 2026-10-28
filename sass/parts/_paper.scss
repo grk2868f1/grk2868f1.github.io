@@ -1,0 +1,964 @@
+/*
+ * LaTeX 论文式版式：
+ *  - 左侧固定侧边栏（导航 / 搜索 / 主题切换 / 社交图标）
+ *  - 主内容渲染为居中的 A4 "纸张"，书桌沿用现有背景色，纸张加对比
+ *  - 每隔一个 A4 高度绘制淡淡的分隔线，模拟翻页边界
+ *  - 全站文字使用 Charter；代码使用 CM Typewriter
+ * 亮 / 暗主题、代码高亮、搜索等其余设置均保持不变。
+ */
+
+:root {
+  --sidebar-width: 15rem;
+  --paper-width: 240mm; /* 纸张宽度：版心 ≈ 196mm + 左右页边距，介于原 166mm 与 210mm 之间 */
+  --paper-pad-x: 22mm; /* 纸张左右页边距 */
+  --paper-pad-y: 20mm; /* 纸张上下页边距 */
+  --desk-gap: 2.5rem; /* 书桌四周留白 */
+}
+
+/* 书桌（body）沿用现有亮/暗背景色，仅补充纸张与分隔线变量 */
+.light {
+  --paper-bg: #ffffff;
+  --paper-shadow: 0 1px 4px rgba(0, 0, 0, 0.12), 0 8px 24px rgba(0, 0, 0, 0.08);
+  --paper-border: rgba(0, 0, 0, 0.08);
+  --page-divider: rgba(0, 0, 0, 0.14);
+  --sidebar-border: rgba(0, 0, 0, 0.12);
+  --sidebar-fg: #1a1a1a;
+  --sidebar-muted: rgba(0, 0, 0, 0.55);
+  --sidebar-hover-bg: rgba(0, 0, 0, 0.05);
+  --sidebar-active-bg: rgba(33, 150, 243, 0.1);
+  --sidebar-accent: #1976d2;
+}
+
+.dark {
+  --paper-bg: #1a1a1a;
+  --paper-shadow: 0 1px 4px rgba(0, 0, 0, 0.6), 0 8px 24px rgba(0, 0, 0, 0.45);
+  --paper-border: rgba(255, 255, 255, 0.08);
+  --page-divider: rgba(255, 255, 255, 0.14);
+  --sidebar-border: rgba(255, 255, 255, 0.12);
+  --sidebar-fg: #f0f0f0;
+  --sidebar-muted: rgba(255, 255, 255, 0.5);
+  --sidebar-hover-bg: rgba(255, 255, 255, 0.07);
+  --sidebar-active-bg: rgba(77, 166, 255, 0.16);
+  --sidebar-accent: #4da6ff;
+}
+
+/* ----------------------------------------------------------------------
+ * 字体：正文与标题 Charter，代码 CM Typewriter
+ * -------------------------------------------------------------------- */
+body {
+  font-family: var(--font-text-serif);
+}
+
+code,
+pre,
+kbd,
+samp,
+.hack code,
+.hack pre {
+  font-family: var(--font-latex-mono);
+}
+
+/* ----------------------------------------------------------------------
+ * 左侧侧边栏
+ * -------------------------------------------------------------------- */
+.nav-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: var(--sidebar-width);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 1.5rem;
+  padding: 2.6rem 1.7rem; /* 顶部 + 左侧留出更多间距，让品牌字样不贴角 */
+  overflow-y: auto;
+  border-right: 1px solid var(--sidebar-border);
+  background-color: inherit; /* 沿用书桌背景色 */
+  color: var(--sidebar-fg);
+  font-family: var(--font-text-serif);
+  z-index: 100;
+}
+
+/* 品牌区：标题 + 简介，下方细分隔线 */
+.sidebar-brand {
+  margin-top: 0.6rem; /* 顶部留白（nav-header 的 padding 被 hack.css 重置，故用 margin） */
+  font-size: 1.5rem;
+  font-weight: bold;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--sidebar-border);
+}
+
+.sidebar-brand a {
+  display: inline-block;
+  padding: 0.15rem 0.7rem; /* 左侧缩进 + hover 填充区域 */
+  border-radius: 5px;
+  border-bottom: none;
+  color: inherit;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.light .sidebar-brand a {
+  color: #111;
+}
+
+.dark .sidebar-brand a {
+  color: #f0f0f0;
+}
+
+/* hover 时填充蓝色、文字变白，与文章标题链接效果一致 */
+.light .sidebar-brand a:hover,
+.dark .sidebar-brand a:hover {
+  color: #fff;
+}
+
+/* 区块小标签（Menu 等）。
+   用 .nav-header 前缀提高特异性，盖过 hack.css 的 `.hack p{padding:0;margin:0}` */
+.nav-header .nav-label {
+  margin: 0 0 0.5rem;
+  padding-left: 0.9rem;
+  font-size: 0.68rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--sidebar-muted);
+}
+
+/* 导航链接竖向排列 */
+.nav-header .navbar {
+  flex-shrink: 1;
+}
+
+/* 汉堡按钮仅在窄屏出现 */
+.nav-toggle {
+  display: none;
+}
+
+.nav-header .nav-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  white-space: normal;
+}
+
+.nav-header .nav-links a {
+  display: block;
+  padding: 0.4rem 0.7rem;
+  border-radius: 5px;
+  border-bottom: none;
+  border-left: 2px solid transparent;
+  font-size: 1.1rem;
+  font-weight: normal;
+  color: var(--sidebar-fg);
+  transition: background-color 0.15s ease, border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.light .nav-header .nav-links a,
+.dark .nav-header .nav-links a {
+  color: var(--sidebar-fg);
+  font-weight: normal;
+}
+
+.nav-header .nav-links a:hover {
+  background-color: var(--sidebar-hover-bg);
+  color: var(--sidebar-fg);
+}
+
+.nav-header .nav-links a.active {
+  background-color: var(--sidebar-active-bg);
+  border-left-color: var(--sidebar-accent);
+  color: var(--sidebar-accent);
+  font-weight: bold;
+}
+
+/* 用户操作（搜索）竖向排列 */
+.user-actions-container {
+  position: static;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1rem;
+  flex-grow: 0;
+  min-width: 0;
+  margin: 0;
+}
+
+.search-box {
+  position: relative;
+  margin: 0 0.4rem; /* 侧边栏中左右留出一点呼吸空间，避免顶格 */
+}
+
+/* 搜索结果下拉框比窄侧边栏稍宽，但限制在一个舒适的固定宽度，不铺满整屏 */
+.nav-header .search-results {
+  width: 30rem;
+  min-width: 0;
+  max-width: calc(100vw - 2rem);
+}
+
+/* 底部：社交图标固定在侧边栏底部。
+   注意：.nav-header 是 overflow-y:auto 的滚动容器，其 padding-bottom 会被浏览器忽略，
+   因此底部留白放在 footer 自身的 padding-bottom 上，才能真正把图标抬离底边。 */
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 1.1rem;
+  padding-bottom: 1.5rem; /* 图标本身还有约 0.25rem 下边距，视觉上≈左边距 */
+  border-top: 1px solid var(--sidebar-border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.sidebar-social {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem; /* 缩小三个图标之间的间距 */
+  padding-left: 0.7rem; /* 与导航文字左对齐，避免图标紧贴侧边栏左缘 */
+}
+
+.sidebar-social .feed-icon,
+.sidebar-social #dark-mode-toggle {
+  border-bottom: none;
+  opacity: 0.7;
+  transition: opacity 0.15s ease;
+}
+
+.sidebar-social .feed-icon:hover,
+.sidebar-social #dark-mode-toggle:hover {
+  background-color: transparent;
+  opacity: 1;
+}
+
+/* 语言下拉菜单：放在社交图标行末尾，按钮显示当前语言简称，菜单列出全称。
+   桌面端按钮在侧边栏最底部，菜单向上、右对齐弹出；窄屏见下方 media query。 */
+.nav-header .lang-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin: 0 0 0.25rem; /* 与图标的 margin-bottom 一致，视觉中心对齐 */
+  padding: 0;
+  /* 去掉 hack.css 给正文折叠块 details 加的边框、背景和阴影 */
+  border: none;
+  border-radius: 0;
+  background-color: transparent;
+  box-shadow: none;
+  font-size: 0.95rem;
+  color: var(--sidebar-fg);
+}
+
+.nav-header .lang-switch summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  box-sizing: border-box;
+  height: 1.5rem; /* 与社交图标同高 */
+  min-width: 3rem; /* 固定宽度：中 / en / de 宽度不同，窄屏右对齐时会推动整行图标 */
+  justify-content: center;
+  padding: 0 0.4rem;
+  border: 1px solid var(--sidebar-border);
+  border-radius: 4px;
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.15s ease;
+}
+
+.nav-header .lang-switch summary::-webkit-details-marker {
+  display: none;
+}
+
+.nav-header .lang-switch summary:hover {
+  background-color: var(--sidebar-hover-bg);
+}
+
+.nav-header .lang-switch .lang-switch-current {
+  font-weight: bold;
+  color: var(--sidebar-accent);
+}
+
+.nav-header .lang-switch .lang-switch-caret {
+  font-size: 0.75em;
+  color: var(--sidebar-muted);
+  transition: transform 0.15s ease;
+}
+
+.nav-header .lang-switch[open] .lang-switch-caret {
+  transform: rotate(180deg);
+}
+
+.nav-header .lang-switch-menu {
+  position: absolute;
+  bottom: calc(100% + 0.35rem);
+  right: 0; /* 按钮在行末，右对齐避免超出侧边栏 */
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  min-width: 8rem;
+  padding: 0.3rem 0;
+  border: 1px solid var(--sidebar-border);
+  border-radius: 5px;
+  background-color: var(--paper-bg);
+  box-shadow: var(--paper-shadow);
+}
+
+.nav-header .lang-switch-menu > a,
+.nav-header .lang-switch-menu > span {
+  display: block;
+  padding: 0.35rem 0.9rem;
+  border-bottom: none;
+  white-space: nowrap;
+  color: var(--sidebar-fg);
+}
+
+.nav-header .lang-switch-menu > a:hover {
+  background-color: var(--sidebar-hover-bg);
+  color: var(--sidebar-accent);
+}
+
+.nav-header .lang-switch-menu .lang-current {
+  font-weight: bold;
+  color: var(--sidebar-accent);
+  background-color: var(--sidebar-active-bg);
+}
+
+.nav-header .lang-switch-menu .lang-unavailable {
+  color: var(--sidebar-muted);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ----------------------------------------------------------------------
+ * 内容区与 A4 纸张
+ * -------------------------------------------------------------------- */
+.page-area {
+  margin-left: var(--sidebar-width);
+  padding: var(--desk-gap) var(--desk-gap) 4rem;
+  display: flex;
+  justify-content: center;
+}
+
+.paper {
+  width: 100%;
+  max-width: var(--paper-width);
+  box-sizing: border-box;
+  padding: var(--paper-pad-y) var(--paper-pad-x);
+  background-color: var(--paper-bg);
+  border: 1px solid var(--paper-border);
+  border-radius: 2px;
+  box-shadow: var(--paper-shadow);
+}
+
+/* 纸张内主块去掉 hack 的额外内边距/动画偏移影响 */
+.paper > main,
+.paper > article {
+  display: block;
+}
+
+/* ----------------------------------------------------------------------
+ * LaTeX 风格排版：去掉终端式装饰，使用衬线标题层级
+ * -------------------------------------------------------------------- */
+
+/* 移除 hack.css 的 ##/###/==== 等终端前后缀 */
+.hack h1:after {
+  content: none;
+}
+
+.hack h2:before,
+.hack h3:before,
+.hack h4:before,
+.hack h5:before,
+.hack h6:before {
+  content: none;
+}
+
+/* 标题恢复为普通块级衬线标题，并建立字号层级 */
+.paper h1,
+.paper h2,
+.paper h3,
+.paper h4,
+.paper h5,
+.paper h6 {
+  font-family: var(--font-text-serif);
+  font-weight: bold;
+  line-height: 1.25;
+}
+
+/* 文章大标题 / 页面标题（section、首页、404 等），缩小为原一级标题大小 */
+.hack h1 {
+  display: block;
+  padding: 0;
+  margin: 0 0 1rem;
+  overflow: visible;
+  font-size: 1.7rem;
+}
+
+/* 正文标题层级，对应 LaTeX 字号：
+   #   一级 → 介于大标题与 section 之间（约 \LARGE）
+   ##  二级 → \section（\Large，约 1.44× 正文）
+   ### 三级 → \subsection（\large，约 1.2× 正文）
+   #### 及以下 → \subsubsection（约正文大小，加粗） */
+article[itemprop="articleBody"] h1 {
+  font-size: 1.44rem !important;
+  margin-top: 2.4rem !important;
+  margin-bottom: 1rem;
+}
+
+.paper h2,
+article[itemprop="articleBody"] h2 {
+  font-size: 1.2rem !important;
+  margin-top: 2.2rem !important;
+  margin-bottom: 1rem;
+}
+
+/* 文章列表里的标题（首页 / Posts / 标签 / 分类）相对小一些 */
+.paper h2.post-list-title {
+  font-size: 1.1rem !important;
+  margin-top: 0 !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.paper h3,
+article[itemprop="articleBody"] h3 {
+  font-size: 1.1rem !important;
+  margin-top: 1.8rem !important;
+  margin-bottom: 0.7rem;
+}
+
+.paper h4,
+.paper h5,
+.paper h6,
+article[itemprop="articleBody"] h4,
+article[itemprop="articleBody"] h5,
+article[itemprop="articleBody"] h6 {
+  font-size: 1.05rem !important;
+  margin-top: 1.5rem !important;
+  margin-bottom: 0.5rem;
+}
+
+/* 区块页（Posts / 标签 / 分类 / 404）标题与下方列表之间留更多空隙 */
+.paper main > h1 {
+  margin-bottom: 2.5rem;
+}
+
+/* ----------------------------------------------------------------------
+ * 正文标题自动编号（页面大标题为一级；正文实际从 ## / h2 起）：
+ *   二级 h2 → 1、2、3 …
+ *   三级 h3 → 1.1、1.2 …
+ *   四级 h4 → 1.1.1、1.1.2 …
+ *   五级 h5 及以下不编号
+ * 计数器限定在正文容器内，标题区 / 摘要 / 列表标题不受影响。
+ * -------------------------------------------------------------------- */
+article[itemprop="articleBody"] {
+  counter-reset: sec2;
+}
+
+article[itemprop="articleBody"] h2 {
+  counter-increment: sec2;
+  counter-reset: sec3;
+}
+
+article[itemprop="articleBody"] h2::before {
+  content: counter(sec2) "\2002";
+}
+
+article[itemprop="articleBody"] h3 {
+  counter-increment: sec3;
+  counter-reset: sec4;
+}
+
+article[itemprop="articleBody"] h3::before {
+  content: counter(sec2) "." counter(sec3) "\2002";
+}
+
+article[itemprop="articleBody"] h4 {
+  counter-increment: sec4;
+}
+
+article[itemprop="articleBody"] h4::before {
+  content: counter(sec2) "." counter(sec3) "." counter(sec4) "\2002";
+}
+
+/* 正文两端对齐（LaTeX 风格），保留断词 */
+/* 行高向论文靠拢：LaTeX 10pt 文档的基线间距 11.95pt / 9.9626pt = 1.20。
+ * 但 CJK 是满方框字形，1.2 会糊成一片，1.5 是中文的合理下限，
+ * 既保留论文的密实感，又不牺牲中文可读性。 */
+.paper p {
+  text-align: justify;
+  hyphens: auto;
+  line-height: 1.5;
+}
+
+/* 列表使用真正的项目符号 / 数字（覆盖 hack 的 "-"） */
+.hack ul > li:after {
+  content: "\2022"; /* • */
+}
+
+/* 目录列表项改用层级序号（1、1.1、1.1.1），代替正文的圆点 */
+.paper .toc-list {
+  counter-reset: toc1;
+}
+.paper .toc-list > li {
+  counter-increment: toc1;
+  padding-left: 2.2em;
+}
+.paper .toc-list > li:after {
+  content: counter(toc1) ".";
+}
+
+.paper .toc-list > li > ul {
+  counter-reset: toc2;
+}
+.paper .toc-list > li > ul > li {
+  counter-increment: toc2;
+  padding-left: 2.6em;
+}
+.paper .toc-list > li > ul > li:after {
+  content: counter(toc1) "." counter(toc2);
+}
+
+.paper .toc-list > li > ul > li > ul {
+  counter-reset: toc3;
+}
+.paper .toc-list > li > ul > li > ul > li {
+  counter-increment: toc3;
+  padding-left: 3.2em;
+}
+.paper .toc-list > li > ul > li > ul > li:after {
+  content: counter(toc1) "." counter(toc2) "." counter(toc3);
+}
+
+/* 标题块（首页 / 文章标题）居中，模拟 LaTeX 标题区 */
+.paper-title,
+article[itemtype="http://schema.org/BlogPosting"] > header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.paper-title h1,
+article[itemtype="http://schema.org/BlogPosting"] > header h1 {
+  margin-bottom: 0.5rem;
+  font-weight: bold !important;
+}
+
+/* 正文图片不再溢出纸张边界：原始像素宽超过版心时按比例缩到版心宽度。
+ * 只设 max-width（不设 width），比版心窄的小图保持原尺寸不被拉伸。
+ * responsive 短代码自带同名内联样式，这条规则覆盖直接写 ![](...) 的情况。 */
+.paper img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 宽表格不再溢出纸张右边界，超宽时改为横向滚动 */
+.paper table {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+article[itemtype="http://schema.org/BlogPosting"] > header .muted {
+  display: block;
+  font-style: italic;
+}
+
+/* 论文式作者 / 日期 / 期刊 */
+.paper-authors {
+  margin-top: 0.4rem;
+  font-size: 1.15rem;
+}
+
+.paper-date {
+  margin-top: 0.3rem;
+  font-style: italic;
+  opacity: 0.8;
+}
+
+.paper-journal {
+  margin-top: 0.3rem;
+  font-size: 0.95rem;
+  opacity: 0.85;
+}
+
+.paper-journal a {
+  border-bottom: none;
+}
+
+/* 摘要：整块在页面居中（略窄），但内部文字居左；标题居中加粗。
+   用 .paper .paper-abstract 提高优先级，覆盖 hack.css 的 `.hack section{margin:0}` */
+.paper .paper-abstract {
+  max-width: 80%;
+  margin: 0 auto 1.75rem;
+  font-size: 0.95rem;
+}
+
+.paper h2.paper-abstract-title {
+  font-size: 1.05rem !important;
+  text-align: center;
+  margin: 0 0 0.6rem !important;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.paper-abstract p {
+  text-align: left;
+  margin-bottom: 0.75rem;
+}
+
+/* 关键词：与正文一样，从页面左边开始、占满正文宽度、左对齐（不居中） */
+.paper .paper-keywords {
+  margin: 0 0 2.5rem;
+  text-align: left;
+}
+
+.paper-keywords-label {
+  font-weight: bold;
+}
+
+/* Keywords 后面的关键词链接不加粗（覆盖 hack.css 链接默认 bold） */
+.paper .paper-keywords a {
+  font-weight: normal;
+}
+
+/* hr 作为细分隔线 */
+.hack hr {
+  height: auto;
+  margin: 2rem 0;
+}
+
+.hack hr:after {
+  content: none;
+}
+
+.paper hr {
+  border: 0;
+  border-top: 1px solid var(--page-divider);
+}
+
+/* 链接在纸张内去掉粗下划线，改用细下划线，更接近论文排版 */
+.paper a {
+  border-bottom-width: 1px;
+}
+
+/* 标题中的链接去掉蓝色下划线（hover 高亮效果不受影响） */
+.paper h1 a,
+.paper h2 a,
+.paper h3 a,
+.paper h4 a,
+.paper h5 a,
+.paper h6 a {
+  border-bottom: none;
+}
+
+/* Read More、分类 / 标签列表页、关键词、目录的链接也去掉蓝色下划线（hover 不受影响） */
+.paper .readmore a,
+.paper > ul a,
+.paper main > ul a,
+.paper .paper-keywords a,
+.paper .toc-list a {
+  border-bottom: none;
+}
+
+/* ----------------------------------------------------------------------
+ * 响应式：窄屏时侧边栏变为顶部横条，纸张铺满
+ * -------------------------------------------------------------------- */
+@media screen and (max-width: 60em) {
+  /* 顶部横条：标题（左） | 菜单 | 搜索图标 | 社交（右），保持单行不换行 */
+  .nav-header {
+    position: relative; /* 作为搜索/菜单展开层的定位上下文 */
+    width: auto;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 1rem; /* 顶栏紧凑，左右留出统一边距 */
+    border-right: none;
+    border-bottom: 1px solid var(--sidebar-border);
+    overflow: visible; /* 必须可见，否则下拉菜单/搜索结果会被裁剪 */
+  }
+
+  .sidebar-brand {
+    order: 1;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    font-size: 1.25rem;
+    line-height: 1;
+    margin-top: 0; /* 顶栏内不需要桌面的顶部留白 */
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+
+  /* 顶部横条隐藏菜单标签，保持单行紧凑 */
+  .nav-label {
+    display: none;
+  }
+
+  /* 菜单折叠为汉堡按钮，连同搜索/社交一起靠右 */
+  .nav-header .navbar {
+    order: 2;
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    min-width: 0;
+    margin-left: auto; /* 把菜单 + 搜索 + 社交推到最右 */
+  }
+
+  /* 显示汉堡按钮 */
+  .nav-toggle {
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .nav-toggle-bar {
+    display: block;
+    width: 1.15rem;
+    height: 2px;
+    margin: 0 auto;
+    border-radius: 2px;
+    background-color: var(--sidebar-fg);
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+
+  /* 打开态：汉堡变叉 */
+  .navbar.nav-open .nav-toggle-bar:nth-child(1) {
+    transform: translateY(6px) rotate(45deg);
+  }
+  .navbar.nav-open .nav-toggle-bar:nth-child(2) {
+    opacity: 0;
+  }
+  .navbar.nav-open .nav-toggle-bar:nth-child(3) {
+    transform: translateY(-6px) rotate(-45deg);
+  }
+
+  /* 菜单链接改为点击展开的下拉面板 */
+  .nav-header .nav-links {
+    display: none;
+    position: absolute;
+    top: calc(100% + 0.4rem);
+    right: 0;
+    left: auto;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 0.15rem;
+    min-width: 9rem;
+    padding: 0.4rem;
+    white-space: nowrap;
+    background-color: var(--bg-primary);
+    border: 1px solid var(--sidebar-border);
+    border-radius: 6px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+    z-index: 200;
+  }
+
+  .navbar.nav-open .nav-links {
+    display: flex;
+  }
+
+  /* 搜索折叠为图标按钮；展开时覆盖整条导航 */
+  .user-actions-container {
+    order: 3;
+    flex: 0 0 auto;
+    min-width: 0;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  /* 折叠态：方形图标按钮 */
+  .search-box {
+    flex: 0 0 auto;
+    width: 2.25rem;
+    height: 2.25rem;
+    margin: 0; /* 顶栏内由 gap 控制间距，去掉桌面的左右 margin */
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .search-box .search-icon {
+    left: 50%;
+    top: 50%;
+    width: 1.15rem;
+    height: 1.15rem;
+    transform: translate(-50%, -50%);
+    padding: 0;
+    pointer-events: auto; /* 图标可点击以展开搜索 */
+    cursor: pointer;
+  }
+
+  /* 折叠态隐藏输入框 */
+  .search-box #search {
+    display: none;
+  }
+
+  /* 展开态：搜索框绝对定位铺满导航条，遮住菜单。
+     图标与输入框都作为 flex 子项由 align-items:center 统一居中，
+     保证放大镜与文字在同一水平线，四周留出呼吸空间 */
+  .search-box.search-expanded {
+    position: absolute;
+    inset: 0;
+    width: auto;
+    height: auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 1rem;
+    background-color: var(--bg-primary);
+    z-index: 200;
+  }
+
+  .search-box.search-expanded .search-icon {
+    position: static; /* 改为普通 flex 子项，与输入框同行居中 */
+    transform: none;
+    flex: 0 0 auto;
+    width: 1.15rem;
+    height: 1.15rem;
+  }
+
+  .search-box.search-expanded #search {
+    display: block;
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+    height: 2.1rem;
+    padding: 0 0.6rem; /* 图标已独立，不再需要左侧大留白 */
+  }
+
+  /* 移动端结果面板宽度由 JS 对齐输入框，去掉侧边栏用的宽度约束 */
+  .nav-header .search-results {
+    min-width: 0;
+    max-width: none;
+  }
+
+  .nav-header .nav-links a {
+    display: block;
+    padding: 0.45rem 0.6rem;
+    border-left: 2px solid transparent;
+    border-radius: 5px;
+  }
+
+  .nav-header .nav-links a.active {
+    border-left: 2px solid var(--sidebar-accent);
+  }
+
+  /* 社交图标移到最右侧 */
+  .sidebar-footer {
+    order: 4;
+    margin-top: 0;
+    padding: 0;
+    border-top: none;
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .sidebar-social {
+    flex-shrink: 0;
+    flex-wrap: nowrap;
+    align-items: center;
+    padding-left: 0;
+  }
+
+  /* 顶栏中图标去掉了底部外边距，菜单按钮同步；菜单改为向下弹出 */
+  .nav-header .lang-switch {
+    margin-bottom: 0;
+  }
+
+  .nav-header .lang-switch-menu {
+    top: calc(100% + 0.35rem);
+    bottom: auto;
+  }
+
+  /* 顶栏内图标去掉用于竖排的底部外边距 */
+  .sidebar-social #sun-icon,
+  .sidebar-social #moon-icon,
+  .sidebar-social .social-icon {
+    margin-bottom: 0;
+  }
+
+  /* 所有社交/主题图标的容器统一为等高 flex 居中，
+     避免主题切换按钮（JS 设为 inline-block）与其它图标基线不一致而偏高 */
+  .sidebar-social .feed-icon,
+  .sidebar-social #dark-mode-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 1.7em;
+  }
+
+  .page-area {
+    margin-left: 0;
+    padding: 1.25rem 1rem 3rem;
+  }
+
+  .paper {
+    padding: 1.75rem 1.25rem;
+  }
+}
+
+/* 极窄屏（≤480px）：顶栏进一步压缩；仍放不下时让社交图标折到第二行，
+   而不是溢出被视口裁切（RSS 图标启用后共 5 个图标，375px 一行放不下） */
+@media screen and (max-width: 30em) {
+  .nav-header {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .sidebar-brand {
+    font-size: 1.05rem;
+  }
+
+  .sidebar-social {
+    gap: 0.35rem;
+  }
+
+  .sidebar-social #sun-icon,
+  .sidebar-social #moon-icon,
+  .sidebar-social .social-icon {
+    height: 1.3em;
+  }
+
+  /* 与 .navbar 的 margin-left:auto 配合：同行时分居右侧，折行后仍右对齐 */
+  .sidebar-footer {
+    margin-left: auto;
+  }
+}
+
+/* 正文里的 SVG 流程图（如 draw.io 导出）经常自带 `color-scheme: light dark` 和
+ * `light-dark()` 函数，会跟随浏览器/系统的 prefers-color-scheme 自动切换。
+ * 但本站的暗/亮模式是 JS 切换 .dark/.light 类，跟系统偏好可能不一致。
+ *
+ * 下面两条规则只在「网站主题 ≠ 浏览器/系统偏好」时用 CSS filter 反相一次，
+ * 保证四种组合（网站亮/暗 × 系统亮/暗）下 SVG 颜色都与页面背景协调：
+ *   - invert(0.92) 把纯黑变成近似 #ededed 而非纯白，避免过亮
+ *   - hue-rotate(180deg) 修正反相带来的色相偏移（红仍是红、蓝仍是蓝）
+ * 仅作用于 .paper（正文）内的 SVG 资源，导航/社交图标不受影响；PNG/JPG 也不动。 */
+@media (prefers-color-scheme: light) {
+  :root.dark .paper img[src$=".svg"],
+  :root.dark .paper img[src$=".SVG"] {
+    filter: invert(0.92) hue-rotate(180deg);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root.light .paper img[src$=".svg"],
+  :root.light .paper img[src$=".SVG"] {
+    filter: invert(0.92) hue-rotate(180deg);
+  }
+}

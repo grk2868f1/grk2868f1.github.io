@@ -1,0 +1,160 @@
+/// This file is the main entry point for the Sass styles of the site.
+
+@use "parts/fonts";
+@use "vendor";
+@use "theme";
+@use "parts/note";
+@use "parts/code";
+@use "parts/search";
+@use "parts/toc";
+@use "parts/latex";
+@use "parts/references";
+@use "parts/paper";
+@use "parts/print";
+
+/// Globally defined CSS variables
+:root {
+  --accent: #2196f3;
+  --search-border-color: #2196f3;
+  --note-bg-dark: #1a1a1a;
+  --note-bg-light: #efefef;
+}
+
+/* 暗色模式 */
+:root.dark, 
+html.dark {
+  --bg-primary: #282828; /* 深色背景 */
+}
+
+/* 亮色模式 */
+:root.light,
+html.light {
+  --bg-primary: #f3f3ee; /* 浅色背景 */
+}
+
+/* 分页样式 */
+.pagination {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.pagination-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.pagination-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 2.5rem;
+  padding: 0.5rem 1rem;
+  text-decoration: none;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  color: var(--accent);
+  transition: all 0.3s ease;
+}
+
+.pagination-link:hover {
+  background-color: var(--accent);
+  color: white;
+}
+
+/* 数字页码（纯链接，服务端分页） */
+.pagination-pages {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.4rem;
+}
+
+.pagination-ellipsis {
+  min-width: 1.5rem;
+  text-align: center;
+  color: var(--accent);
+  user-select: none;
+}
+
+.pagination-disabled,
+.pagination-disabled:hover {
+  opacity: 0.35;
+  background-color: transparent;
+  color: var(--accent);
+  cursor: default;
+}
+
+/* 窄屏：页码独占一行，Previous / Next 放到下一行两侧 */
+@media screen and (max-width: 600px) {
+  .pagination-wrapper {
+    gap: 0.6rem;
+  }
+
+  .pagination-pages {
+    order: -1;
+    flex-basis: 100%;
+    gap: 0.3rem;
+  }
+
+  .pagination-pages .pagination-link {
+    min-width: 2.2rem;
+    padding: 0.4rem 0.4rem;
+  }
+}
+
+.pagination-pages .pagination-link {
+  min-width: 2.5rem;
+  padding: 0.5rem 0.6rem;
+}
+
+.pagination-current {
+  background-color: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.more-posts {
+  text-align: center;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+.view-all-posts {
+  padding: 0.5rem 1rem;
+  text-decoration: none;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  color: var(--accent);
+  transition: all 0.3s ease;
+}
+
+.view-all-posts:hover {
+  background-color: var(--accent);
+  color: white;
+}
+
+/* 首页 Introduction 和 Featured Posts 区域样式 */
+.introduction,
+.featured-posts {
+  margin-bottom: 3rem;
+}
+
+.introduction h2,
+.featured-posts h2 {
+  font-size: 1.5rem; /* 区块标题明显大于文章标题(1.1rem)，建立层级 */
+  margin-bottom: 1.5rem;
+  margin-top: 2rem;
+}
+
+/* Introduction 内容段落样式 */
+.introduction p {
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+

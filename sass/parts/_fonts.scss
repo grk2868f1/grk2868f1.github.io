@@ -1,0 +1,91 @@
+/*
+ * 自托管网页字体：
+ *  - 正文与标题：Charter（macOS / iOS 系统自带），其余平台回退到自托管的 XCharter；
+ *  - 代码：Computer Modern Typewriter（保留 LaTeX 风格）。
+ * 字体文件位于 static/fonts/，构建后位于站点根 /fonts/。
+ */
+
+/* ---- Computer Modern Typewriter（代码） ---- */
+@font-face {
+  font-family: "Computer Modern Typewriter";
+  src: url("/fonts/cmuntt.woff2") format("woff2"),
+    url("/fonts/cmuntt.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Computer Modern Typewriter";
+  src: url("/fonts/cmuntb.woff2") format("woff2"),
+    url("/fonts/cmuntb.woff") format("woff");
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Computer Modern Typewriter";
+  src: url("/fonts/cmunit.woff2") format("woff2"),
+    url("/fonts/cmunit.woff") format("woff");
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Computer Modern Typewriter";
+  src: url("/fonts/cmuntx.woff2") format("woff2"),
+    url("/fonts/cmuntx.woff") format("woff");
+  font-weight: bold;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* ---- XCharter（Bitstream Charter 开源衍生版，正文 / 标题 / 侧边栏） ----
+ * macOS / iOS 自带 Charter，优先用系统字体；其余平台回退到这里自托管的 XCharter。
+ * 许可声明见 static/fonts/XCharter-LICENSE.txt。 */
+@font-face {
+  font-family: "XCharter";
+  src: url("/fonts/XCharter-Roman.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "XCharter";
+  src: url("/fonts/XCharter-Bold.woff2") format("woff2");
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "XCharter";
+  src: url("/fonts/XCharter-Italic.woff2") format("woff2");
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "XCharter";
+  src: url("/fonts/XCharter-BoldItalic.woff2") format("woff2");
+  font-weight: bold;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* 可复用的字体族变量 */
+:root {
+  --font-latex-mono: "Computer Modern Typewriter", "Latin Modern Mono", Menlo,
+    Monaco, "Liberation Mono", "Courier New", "Songti SC", "STSong", "SimSun",
+    "Noto Serif CJK SC", monospace;
+  /* 全站文字（正文 / 标题 / 侧边栏）：屏幕衬线 Charter，笔画比 CM 10pt 扎实，屏幕上不发灰；
+     中文回退到衬线 CJK（宋体系） */
+  --font-text-serif: "Charter", "Bitstream Charter", "XCharter",
+    "Iowan Old Style", "Palatino Linotype", Palatino, "Source Serif Pro",
+    Georgia, "Songti SC", "STSong", "SimSun", "Noto Serif CJK SC",
+    "Source Han Serif SC", "Source Han Serif CN", serif;
+}

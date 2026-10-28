@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+{#- 覆盖 Zola 内置 feed 模板：过滤 unlisted 文章（否则私人文章全文会进入公开 feed），
+    并只保留最新 20 篇。上下文变量：config、feed_url、last_updated、pages、lang、term(可选) -#}
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="{{ lang }}">
+    <title>{{ config.title }}{% if term %} - {{ term.name }}{% endif %}</title>
+    {%- if config.description %}
+    <subtitle>{{ config.description }}</subtitle>
+    {%- endif %}
+    <link href="{{ feed_url | safe }}" rel="self" type="application/atom+xml"/>
+    {%- set feed_home = config.base_url ~ config.extra.i18n.root[lang] %}
+    <link href="{{ feed_home | escape_xml | safe }}"/>
+    <generator uri="https://www.getzola.org/">Zola</generator>
+    {#- 某种语言还没有文章时 Zola 不提供 last_updated，用当前时间 -#}
+    {%- if last_updated is defined %}{% set_global feed_updated = last_updated %}{% else %}{% set_global feed_updated = now() %}{% endif %}
+    <updated>{{ feed_updated | date(format="%+") }}</updated>
+    <id>{{ feed_url | safe }}</id>
+    {%- set listed_pages = [] -%}
+    {%- for p in pages -%}
+        {%- if not p.extra.unlisted -%}
+            {%- set_global listed_pages = listed_pages | concat(with=p) -%}
+        {%- endif -%}
+    {%- endfor -%}
+    {%- for page in listed_pages | slice(end=20) %}
+    <entry xml:lang="{{ page.lang }}">
+        <title>{{ page.title }}</title>
+        <published>{{ page.date | date(format="%+") }}</published>
+        <updated>{{ page.updated | default(value=page.date) | date(format="%+") }}</updated>
+        <author>
+            <name>{% if page.authors %}{{ page.authors[0] }}{% elif config.extra.author %}{{ config.extra.author }}{% else %}Unknown{% endif %}</name>
+        </author>
+        <link rel="alternate" href="{{ page.permalink | safe }}" type="text/html"/>
+        <id>{{ page.permalink | safe }}</id>
+        {%- if page.summary %}
+        <summary type="html">{{ page.summary }}</summary>
+        {%- else %}
+        <content type="html" xml:base="{{ page.permalink | escape_xml | safe }}">{{ page.content }}</content>
+        {%- endif %}
+    </entry>
+    {%- endfor %}
+</feed>

@@ -1,0 +1,16 @@
+.idea/
+public/
+docs/
+
+# NAS 部署相关（仅本地使用，不进版本库）
+deploy-nas.sh
+.deploy-nas.env
+.deploy-nas.env.example
+
+# macOS specific files
+.DS_Store
+**/.DS_Store
+
+.claude/
+# Python 字节码（util/ 下的检查脚本与测试）
+__pycache__/

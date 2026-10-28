@@ -1,0 +1,84 @@
+/* Style the magnifying glass SVG */
+.search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%); /* 垂直居中，与占位文字对齐 */
+  width: 24px;
+  height: 24px;
+  /* default gray */
+  stroke: var(--text-color, #757575);
+  /* Adjust icon color */
+  pointer-events: none;
+  /* Ensure the SVG doesn't block input interaction */
+  padding: 2.5px 0px;
+}
+
+/* Input field styling */
+#search {
+  width: 100%;
+  min-width: 80px;  /* 设置最小宽度，防止过小 */
+  padding: 10px 10px 10px 40px;
+  /* Left padding for the icon */
+  font-size: 14px;
+  border: 1.5px solid transparent;
+  /* Remove border when not focused */
+  border-radius: 4px;
+  background-color: var(--search-bg-color, #fff);
+  color: var(--text-color, #000);
+  outline: none;
+  height: 35px;
+  font-family: Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace, serif;
+  box-sizing: border-box;  /* 确保padding包含在宽度内 */
+}
+
+/* 小屏幕上的搜索框样式 */
+@media only screen and (max-width: 30em) {
+  #search {
+    font-size: 12px;  /* 在小屏幕上使用更小的字体 */
+    padding: 8px 8px 8px 35px;  /* 减小内边距 */
+    min-width: 60px;  /* 在小屏幕上允许更小的最小宽度 */
+  }
+  
+  .search-icon {
+    left: 8px;  /* 调整图标位置 */
+    width: 20px;  /* 减小图标大小 */
+    height: 20px;
+  }
+}
+
+.light #search {
+  border: 1.5px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Highlight border when the input is focused */
+#search:focus {
+  border: 1.5px solid var(--search-border-color, #ddd);
+}
+
+.search-results {
+  display: none;
+  /* Initial state hidden */
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--search-border-color, #ddd);
+  border-radius: 4px;
+  background-color: var(--bg-primary, #fff);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.light .search-results {
+  background-color: var(--bg-light, #f9f9f9);
+}
+
+.search-results__no-results {
+  padding: 1rem !important;
+  font-style: italic;
+  justify-content: center;
+  align-content: center;
+}

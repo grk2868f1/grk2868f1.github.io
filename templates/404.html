@@ -1,0 +1,20 @@
+{% extends "index.html" %}
+
+{% block title %}404 | {{ config.title }}{% endblock title %}
+
+{# 404 页本身已并列三种语言，不需要切换按钮 #}
+{% block lang_switch %}{% endblock lang_switch %}
+
+{% block content %}
+{# Zola 只生成一个 404.html，不分语言，所以三种语言的提示上下并列 #}
+<main style="text-align: center;">
+  <h1>404 - NOT FOUND</h1>
+  {% for code in config.extra.i18n.order %}
+  {% set home_url = config.base_url ~ config.extra.i18n.root[code] %}
+  <section lang="{{ config.extra.i18n.html_lang[code] }}">
+    <p>{{ trans(key="not_found", lang=code) }}</p>
+    <p><a href="{{ home_url | safe }}">{{ trans(key="not_found_home", lang=code) }}</a></p>
+  </section>
+  {% endfor %}
+</main>
+{% endblock content %}

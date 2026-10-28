@@ -1,0 +1,5 @@
+{% if config.extra.enable_search %}
+{# defer 保证顺序执行（search-core 先于 search.js）且不阻塞渲染 #}
+<script defer src="{{ get_url(path='js/search-core.js', trailing_slash=false, cachebust=true) | safe }}"></script>
+<script defer src="{{ get_url(path='js/search.js', trailing_slash=false, cachebust=true) | safe }}"></script>
+{% endif %}

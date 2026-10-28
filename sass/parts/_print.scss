@@ -1,0 +1,95 @@
+/*
+ * 打印样式：隐藏站点框架（侧栏 / 搜索 / 分页 / 页脚），
+ * 让 A4 "纸张" 直接成为打印页面本身——所见即 LaTeX 论文。
+ */
+@media print {
+  .nav-header,
+  .search-box,
+  .search-results,
+  #dark-mode-toggle,
+  .pagination,
+  .readmore,
+  .site-footer,
+  .paper > hr {
+    display: none !important;
+  }
+
+  html {
+    font-size: 11pt;
+  }
+
+  /* 无论当前处于亮/暗主题，纸面一律按浅色输出 */
+  body,
+  .paper {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .muted,
+  .paper-date,
+  .paper-journal {
+    color: rgba(0, 0, 0, 0.6) !important;
+  }
+
+  .page-area {
+    display: block;
+    margin: 0;
+    padding: 0;
+  }
+
+  .paper {
+    width: auto;
+    max-width: 100%;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  /* 取消淡入动画与暗色 SVG 反相，按原始内容输出 */
+  main,
+  footer {
+    animation: none;
+    opacity: 1;
+  }
+
+  .paper img {
+    filter: none !important;
+  }
+
+  a {
+    color: inherit !important;
+    border-bottom: none !important;
+  }
+
+  /* 代码块保留自身配色（inline 高亮的 token 颜色依赖底色才可读） */
+  pre {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* 行内代码：暗色主题下是浅色文字，打印剥离背景后会白底白字消失，
+     强制黑字 + 浅灰底 */
+  :not(pre) > code {
+    color: #000 !important;
+    background: rgba(0, 0, 0, 0.07) !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* 分页断行控制 */
+  h1,
+  h2,
+  h3,
+  h4 {
+    break-after: avoid;
+  }
+
+  pre,
+  .code-block,               /* 代码块的运行时包裹层，跟 <pre> 一起整块保留 */
+  blockquote,
+  table,
+  figure {
+    break-inside: avoid;
+  }
+}

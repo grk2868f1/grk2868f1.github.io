@@ -1,0 +1,83 @@
+.toc-container {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid transparent;
+  border-radius: 8px;
+}
+
+.light .toc-container {
+  background-color: #fcfcf9;
+}
+
+.dark .toc-container {
+  background-color: #1a1a1a;
+}
+
+.toc-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #444;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.toc-title::-webkit-details-marker {
+  display: none;
+}
+
+.toc-title::before {
+  content: "\25B6"; /* ▶ */
+  display: inline-block;
+  margin-right: 0.55em;
+  color: var(--accent);
+  font-size: 0.8em;
+  transition: transform 0.15s ease;
+}
+
+details[open] > .toc-title::before {
+  transform: rotate(90deg);
+}
+
+.dark .toc-title {
+  color: #ccc;
+}
+
+/* 目录列表：所有层级用 prefix 渲染序号，去除 hack.css 的 "-" 项目符号 */
+.toc-list,
+.toc-list ul {
+  list-style: none;
+  margin: 0;
+  padding-left: 1.5rem;
+  font-weight: bold;
+}
+
+.toc-list {
+  padding-left: 0;
+  color: #444;
+}
+
+.dark .toc-list {
+  color: #ccc;
+}
+
+.toc-list li {
+  margin: 0.4rem 0;
+  padding-left: 0;          /* 取消 hack.css 给 li 的 20px 左内距 */
+  display: list-item;
+}
+
+.toc-list li::after,
+.toc-list li::before,
+.toc-list ul li::after,
+.toc-list ul li::before {
+  content: none !important; /* 关闭 hack.css / _paper.scss 加在 .hack ul>li:after 上的 "-" / "•"，序号交给 .toc-number 渲染 */
+}
+
+.toc-number {
+  display: inline-block;
+  margin-right: 0.6em;        /* 序号与标题文字之间稍大于一个半角空格的间距 */
+  color: var(--accent);
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+}

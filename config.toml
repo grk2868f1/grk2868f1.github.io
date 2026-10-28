@@ -1,0 +1,197 @@
+base_url = "https://grk2868f1.github.io"
+compile_sass = true
+title = "GRK 2868 Archive"
+description = "Research notes and archive of the GRK 2868 F1 subproject"
+generate_feeds = true
+# 默认语言为英文：英文页面不带前缀；中文、德文页面在 /zh/、/de/ 下（见 [languages.*]）。
+# 语言由文件名决定：index.md（英文）/ index.zh.md / index.de.md
+default_language = "en"
+
+taxonomies = [
+    {name = "categories", feed = true},
+    {name = "tags", feed = true},
+]
+
+# When set to "true", a search index is built from the pages and section
+# content for `default_language`.
+build_search_index = true
+
+[markdown]
+# This determines whether to insert a link for each header like the ones you can see on this site if you hover over
+# a header.
+# The default template can be overridden by creating an `anchor-link.html` file in the `templates` directory.
+# This value can be "left", "right", "heading" or "none".
+# "heading" means the full heading becomes the text of the anchor.
+# See "Internal links & deep linking" in the documentation for more information.
+insert_anchor_links = "heading"
+
+# Zola 0.22+ 把高亮主题放在嵌套表 [markdown.highlighting] 下；
+# `one-dark-pro` 输出的 inline 色值与 sass/parts/_code.scss 浅色 token 一一对应。
+[markdown.highlighting]
+theme = "one-dark-pro"
+style = "inline"
+extra_grammars = ["syntaxes/fortran_free-form.tmLanguage.json"]
+
+[search]
+# fuse_json 不依赖分词器，默认语言 zh 也能建索引（elasticlunr_json 不支持 zh）
+index_format = "fuse_json"
+# 每页只索引正文前 2000 字符，控制 search_index.<lang>.json 体积
+truncate_content_length = 2000
+
+[languages.zh]
+title = "GRK 2868 Archive"
+description = "GRK 2868 F1 子项目的研究笔记与资料存档"
+generate_feeds = true
+build_search_index = true
+taxonomies = [
+    {name = "categories", feed = true},
+    {name = "tags", feed = true},
+]
+
+[languages.de]
+title = "GRK 2868 Archive"
+description = "Forschungsnotizen und Archiv des Teilprojekts GRK 2868 F1"
+generate_feeds = true
+build_search_index = true
+taxonomies = [
+    {name = "categories", feed = true},
+    {name = "tags", feed = true},
+]
+
+# 界面文字：模板里用 trans(key=..., lang=...) 取值，三种语言的键必须一致
+[translations]
+menu = "Menu"
+toggle_nav = "Toggle navigation menu"
+home = "Home"
+posts = "Posts"
+categories = "Categories"
+tags = "Tags"
+language = "Language"
+search_placeholder = "Search..."
+search_no_results = "No results found..."
+search_unavailable = "Search index unavailable..."
+abstract = "Abstract"
+keywords_label = "Keywords:"
+toc = "Table of Contents"
+published_in = "Published in"
+published_label = "Published:"
+read_more = "Read More"
+prev_page = "Previous"
+next_page = "Next"
+introduction = "Introduction"
+featured_posts = "Featured Posts"
+no_posts = "No posts yet."
+n_posts = "posts"
+light_mode = "Light mode"
+dark_mode = "Dark mode"
+rss_feed = "RSS feed"
+not_found = "Page not found. Sorry about that."
+not_found_home = "Maybe try the homepage?"
+date_format = "%B %-d, %Y"
+date_locale = "en_US"
+references = "References"
+undefined_citation = "Undefined citation"
+
+[languages.zh.translations]
+menu = "菜单"
+toggle_nav = "切换导航菜单"
+home = "首页"
+posts = "文章"
+categories = "分类"
+tags = "标签"
+language = "语言"
+search_placeholder = "搜索…"
+search_no_results = "没有找到结果…"
+search_unavailable = "搜索索引不可用…"
+abstract = "摘要"
+keywords_label = "关键词："
+toc = "目录"
+published_in = "发表于"
+published_label = "发布于"
+read_more = "阅读全文"
+prev_page = "上一页"
+next_page = "下一页"
+introduction = "简介"
+featured_posts = "精选文章"
+no_posts = "暂无文章。"
+n_posts = "篇"
+light_mode = "浅色模式"
+dark_mode = "深色模式"
+rss_feed = "RSS 订阅"
+not_found = "页面不存在，抱歉。"
+not_found_home = "去首页看看？"
+date_format = "%Y年%-m月%-d日"
+date_locale = "zh_CN"
+references = "参考文献"
+undefined_citation = "未定义的引用"
+
+[languages.de.translations]
+menu = "Menü"
+toggle_nav = "Navigationsmenü umschalten"
+home = "Startseite"
+posts = "Artikel"
+categories = "Kategorien"
+tags = "Schlagwörter"
+language = "Sprache"
+search_placeholder = "Suchen…"
+search_no_results = "Keine Ergebnisse gefunden…"
+search_unavailable = "Suchindex nicht verfügbar…"
+abstract = "Zusammenfassung"
+keywords_label = "Schlüsselwörter:"
+toc = "Inhaltsverzeichnis"
+published_in = "Veröffentlicht in"
+published_label = "Veröffentlicht:"
+read_more = "Weiterlesen"
+prev_page = "Zurück"
+next_page = "Weiter"
+introduction = "Einleitung"
+featured_posts = "Ausgewählte Artikel"
+no_posts = "Noch keine Artikel."
+n_posts = "Artikel"
+light_mode = "Heller Modus"
+dark_mode = "Dunkler Modus"
+rss_feed = "RSS-Feed"
+not_found = "Seite nicht gefunden. Entschuldigung."
+not_found_home = "Vielleicht zur Startseite?"
+date_format = "%-d. %B %Y"
+date_locale = "de_DE"
+references = "Literatur"
+undefined_citation = "Undefinierte Quelle"
+
+[extra]
+brand = "GRK2868"
+author = "GRK 2868 F1 Project"
+github = "https://github.com/grk2868f1"
+# key 是 [translations] 里的键；path 相对当前语言的首页（模板会补上 /、/en/ 或 /de/）
+radion_menu = [
+    {key = "home", path = ""},
+    {key = "posts", path = "posts/"},
+    {key = "categories", path = "categories/"},
+    {key = "tags", path = "tags/"},
+]
+
+# Nicer codeblocks with copy to clipboard
+codeblock = true
+
+# Enable MathJax support
+latex = true
+
+# Enable search bar
+enable_search = true
+
+# Light/Dark Mode set
+theme = "toggle" # options: {light, dark, auto, toggle}
+
+# Whether to display favicon
+favicon = true
+
+# 多语言映射：切换菜单的顺序、按钮简称与菜单全称、<html lang>、og:locale、各语言首页路径、posts section 文件
+[extra.i18n]
+order = ["en", "zh", "de"]
+label = {zh = "中", en = "en", de = "de"}
+# 下拉菜单里显示的全称，每种语言用它自己的写法
+name = {zh = "中文", en = "English", de = "Deutsch"}
+html_lang = {zh = "zh-CN", en = "en", de = "de"}
+og_locale = {zh = "zh_CN", en = "en_US", de = "de_DE"}
+root = {en = "/", zh = "/zh/", de = "/de/"}
+posts_index = {en = "posts/_index.md", zh = "posts/_index.zh.md", de = "posts/_index.de.md"}

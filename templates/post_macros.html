@@ -1,0 +1,81 @@
+{% macro meta(page) %}
+    {% if page.date %}{{ trans(key="published_label", lang=page.lang) }} {{ page.date | date(format="%F") }}{% endif %}
+{% endmacro meta %}
+
+{% macro page_in_list(page) %}
+    {# 跳过设置为 unlisted 的文章 #}
+    {% if page.extra.unlisted %}
+    {% else %}
+        {{ self::page_in_list_unfiltered(page=page) }}
+    {% endif %}
+{% endmacro page_in_list %}
+
+{% macro page_in_list_unfiltered(page) %}
+    <article itemscope itemtype="http://schema.org/CreativeWork" {{ self::bibliography_attrs(page=page) }} data-reference-url="{{ page.permalink | safe }}">
+        <header>
+            <h2 class="post-list-title" itemprop="name">
+                <a href="{{ page.permalink | safe }}">{{ page.title }}</a>
+            </h2>
+            <data class="muted">{{ self::meta(page=page) }}</data>
+        </header>
+        {% if page.summary %}
+            <section itemprop="summary">
+                {{ page.summary | safe }}
+                <nav class="readmore"><a itemprop="url" href="{{ page.permalink | safe }}">{{ trans(key="read_more", lang=page.lang) }}&nbsp;&raquo;</a></nav>
+            </section>
+        {% endif %}
+    </article>
+{% endmacro page_in_list_unfiltered %}
+
+{# taxonomy 索引页：列出所有词条及可见（非 unlisted）文章数，tags/categories 共用 #}
+{% macro taxonomy_term_list(terms) %}
+    {% if terms %}
+    <ul>
+        {% for term in terms %}
+            {% set_global visible_count = 0 %}
+            {% for page in term.pages %}
+                {% if not page.extra.unlisted %}
+                    {% set_global visible_count = visible_count + 1 %}
+                {% endif %}
+            {% endfor %}
+            {% if visible_count > 0 %}
+            <li><a href="{{ term.permalink | safe }}">{{ term.name }}</a> ({{ visible_count }})</li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+    {% endif %}
+{% endmacro taxonomy_term_list %}
+
+{# taxonomy 词条页：列出该词条下的可见文章，tags/categories 共用 #}
+{% macro taxonomy_term_pages(term) %}
+    {% for page in term.pages %}
+        {{ self::page_in_list(page=page) }}
+    {% endfor %}
+{% endmacro taxonomy_term_pages %}
+
+{# 递归渲染 TOC 条目，prefix 例如 "1"、"1.2"、"1.2.3" #}
+{% macro toc_node(item, prefix) %}
+    <li>
+        <span class="toc-number">{{ prefix }}</span><a href="{{ item.permalink | safe }}">{{ item.title }}</a>
+        {% if item.children %}
+            <ul>
+                {% for child in item.children %}
+                    {{ self::toc_node(item=child, prefix=prefix ~ "." ~ loop.index) }}
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </li>
+{% endmacro toc_node %}
+{# Bundle assets use source paths; permalink includes the actual output slug. #}
+{% macro bibliography_attrs(page) %}
+    {% set_global bib_asset = "" %}
+    {% for asset in page.assets %}
+        {% if bib_asset == "" and asset is ending_with(".bib") %}
+            {% set_global bib_asset = asset %}
+        {% endif %}
+    {% endfor %}
+    {% if bib_asset != "" %}
+        {% set bib_file = bib_asset | split(pat="/") | last %}
+        data-bib="{{ page.permalink | safe }}{{ bib_file | safe }}"
+    {% endif %}
+{% endmacro bibliography_attrs %}

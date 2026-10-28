@@ -1,0 +1,121 @@
+{% extends "index.html" %}
+{% import "post_macros.html" as post_macros %}
+
+{% block title %}{{ section.title }} | {{ config.title }}{% endblock title %}
+
+{# 幽灵页处理：paginator 按全部文章（含 unlisted）生成页面数，超出可见页数的
+   页面加 noindex 并把 canonical 指向真实末页 #}
+{% block seo %}
+{% if paginator %}
+  {# posts 自身 transparent，section.pages 为空，必须经 get_section 取冒泡后的文章 #}
+  {% set seo_posts_section = get_section(path=config.extra.i18n.posts_index[lang]) %}
+  {% set_global seo_visible_total = 0 %}
+  {% for p in seo_posts_section.pages %}
+    {% if not p.extra.unlisted %}
+      {% set_global seo_visible_total = seo_visible_total + 1 %}
+    {% endif %}
+  {% endfor %}
+  {% set seo_total_pagers = ((seo_visible_total + paginator.paginate_by - 1) / paginator.paginate_by) | round(method="floor") | int %}
+  {% if seo_total_pagers > 0 and paginator.current_index > seo_total_pagers %}
+    <link rel="canonical" href="{{ section.permalink | safe }}page/{{ seo_total_pagers }}/" />
+    <meta name="robots" content="noindex" />
+  {% else %}
+    {{ super() }}
+  {% endif %}
+{% else %}
+  {{ super() }}
+{% endif %}
+{% endblock seo %}
+
+{% block content %}
+<main>
+<h1>{{ section.title }}</h1>
+
+{% if section.content %}
+{{ section.content | safe }}
+{% endif %}
+
+{# posts 自身 transparent 导致 section.pages 为空，需经 get_section 取冒泡后的
+   全部文章；sort_by = "date" 已按最新在前 #}
+{% set posts_section = get_section(path=config.extra.i18n.posts_index[lang]) %}
+{% set visible_pages = [] %}
+{% for p in posts_section.pages %}
+  {% if not p.extra.unlisted %}
+    {% set_global visible_pages = visible_pages | concat(with=p) %}
+  {% endif %}
+{% endfor %}
+
+{% if visible_pages | length == 0 %}
+  <p class="muted">{{ trans(key="no_posts", lang=lang) }}</p>
+{% elif paginator %}
+  {% set per_page = paginator.paginate_by %}
+  {% set total = visible_pages | length %}
+  {% set total_pagers = ((total + per_page - 1) / per_page) | round(method="floor") | int %}
+  {% set current_index = paginator.current_index %}
+  {% if current_index > total_pagers %}
+    {% set_global current_index = total_pagers %}
+  {% endif %}
+  {% set start = (current_index - 1) * per_page %}
+  {% set end = start + per_page %}
+
+  {# 服务端只渲染当前页切片 #}
+  <section class="posts-list">
+  {% for listed_page in visible_pages | slice(start=start, end=end) %}
+    {{ post_macros::page_in_list_unfiltered(page=listed_page) }}
+  {% endfor %}
+  </section>
+
+  {% if total_pagers > 1 %}
+  <nav aria-label="Pagination" class="pagination">
+    <div class="pagination-wrapper">
+      {# 首/末页不可用时保留禁用占位，避免翻页时整行左右跳动 #}
+      {% if current_index > 1 %}
+      <a
+        href="{% if current_index == 2 %}{{ section.permalink | safe }}{% else %}{{ section.permalink | safe }}page/{{ current_index - 1 }}/{% endif %}"
+        class="pagination-link prev-page"
+        rel="prev"
+      >&laquo; {{ trans(key="prev_page", lang=lang) }}</a>
+      {% else %}
+      <span class="pagination-link prev-page pagination-disabled" aria-disabled="true">&laquo; {{ trans(key="prev_page", lang=lang) }}</span>
+      {% endif %}
+
+      {# 窗口式页码：始终显示首页、末页与当前页前后 page_window 页，其余折叠为省略号；
+         缺口只有一页时直接显示该页而不是省略号，因此页码槽位数固定（最多 2 * page_window + 5 个），
+         文章再多也不会列出全部页码 #}
+      {% set page_window = 1 %}
+      <span class="pagination-pages">
+        {% for i in range(start=1, end=total_pagers + 1) %}
+          {% set near = i >= current_index - page_window and i <= current_index + page_window %}
+          {% set edge = i == current_index - page_window - 1 or i == current_index + page_window + 1 %}
+          {% if i == current_index %}
+          <span class="pagination-link pagination-current" aria-current="page">{{ i }}</span>
+          {% elif i == 1 %}
+          <a class="pagination-link" href="{{ section.permalink | safe }}">1</a>
+          {% elif i == total_pagers or near or (edge and (i == 2 or i == total_pagers - 1)) %}
+          <a class="pagination-link" href="{{ section.permalink | safe }}page/{{ i }}/">{{ i }}</a>
+          {% elif edge %}
+          <span class="pagination-ellipsis" aria-hidden="true">&hellip;</span>
+          {% endif %}
+        {% endfor %}
+      </span>
+
+      {% if current_index < total_pagers %}
+      <a
+        href="{{ section.permalink | safe }}page/{{ current_index + 1 }}/"
+        class="pagination-link next-page"
+        rel="next"
+      >{{ trans(key="next_page", lang=lang) }} &raquo;</a>
+      {% else %}
+      <span class="pagination-link next-page pagination-disabled" aria-disabled="true">{{ trans(key="next_page", lang=lang) }} &raquo;</span>
+      {% endif %}
+    </div>
+  </nav>
+  {% endif %}
+{% else %}
+  {# 无分页器时列出全部可见文章 #}
+  {% for listed_page in visible_pages %}
+    {{ post_macros::page_in_list_unfiltered(page=listed_page) }}
+  {% endfor %}
+{% endif %}
+</main>
+{% endblock content %}
